@@ -1,0 +1,79 @@
+<template>
+    <div class="add_todo_container">
+        <input ref="myInput" class="add_todo_input" type="text" name="" id="" placeholder="write your next task" />
+        <span class="btn" v-on:click="handleSubmit"><i class="fa-solid fa-plus"></i></span>
+    </div>
+</template>
+
+<script>
+export default {
+    name: 'AddTodo',
+    data() {
+        return {
+            inputValue:""
+        }
+    },
+    methods: {
+        handleSubmit() {
+            this.inputValue = this.$refs.myInput.value;
+            this.$emit('input-value', this.inputValue);
+        },
+        
+    }
+}
+</script>
+
+<style>
+.add_todo_container {
+    height: 5rem;
+    display: flex;
+    width: 30%;
+    margin: 3rem auto;
+    align-items: center;
+    /* border: 1px solid red; */
+
+}
+
+.add_todo_input {
+    height: 100%;
+    width: 100%;
+    background-color: #1E1E1E;
+    border-radius: 15px;
+    outline: none;
+    border: none;
+    color: #CEBEA4;
+    padding-left: 2.5rem;
+    font-size: 1.6rem;
+}
+
+.add_todo_input::placeholder {
+    font-size: 1.5rem;
+    /* padding-left:1.5rem ; */
+    color: #cebea45a;
+}
+
+.btn {
+    padding: 1.6rem;
+    border-radius: 50%;
+    background-color: #FF5631;
+    margin-left: 2rem;
+}
+
+.fa-plus {
+    color: #0d0d0d;
+    font-size: 1.6rem;
+    font-weight: 800;
+}
+
+@media only screen and (max-width: 500px) {
+    html {
+        font-size: 8px;
+    }
+
+    .add_todo_container {
+        height: 5rem;
+        width: 60%;
+
+    }
+}
+</style>
