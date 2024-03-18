@@ -3,7 +3,7 @@
         <div :class="todo.isDone ? 'done' : 'todo_title_list'">
             <div @click="doneTodo(todo)" class="circle"></div>
             <h3 v-if="!todo.isEditing" class="todo_title_text">{{ todo.taskName }}</h3>
-            <input v-else v-model="editedTodo" class="todo_input_edit">
+            <input v-else v-model="editedTodo" v-on:keyup.enter="editTodo(todo)" class="todo_input_edit">
         </div>
 
 
@@ -27,10 +27,14 @@ export default {
         onDeleteTodo(todoID) {
             console.log(todoID)
             this.$emit('remove-todo', todoID);
+            this.$emit('show-toast', 'Todo Deleted');
         },
 
         doneTodo(todo) {
             todo.isDone = !todo.isDone
+            if(todo.isDone){
+                this.$emit('show-toast', 'Task Completed');
+            }
         },
 
         editTodo(todo) {
@@ -41,7 +45,6 @@ export default {
             } else {
                 todo.taskName = this.editedTodo;
             }
-
         }
     }
 

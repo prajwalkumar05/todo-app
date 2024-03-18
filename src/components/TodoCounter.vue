@@ -21,7 +21,7 @@ export default {
     },
     computed:{
         todosCount(){
-            return this.todosList.length
+            return this.todosList.length        
         },
         doneTodoCount(){
             return this.todosList.filter(todo => todo.isDone).length;

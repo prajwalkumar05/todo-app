@@ -2,9 +2,13 @@
   <div id="app">
     <Navbar />
     <TodoCounter :todos-list="todos" />
-    <TodoInput @input-value="handleInputValue" />
+    <TodoInput @input-value="handleInputValue"  />
     <p v-if="todos.length === 0" class="todos_list_alert_text">Add some todos!</p>
-    <TodoList v-for="(todo, index) in todos" :todo="todo" :key="index" @remove-todo="deleteTodo" :index="index" />
+    <TodoList v-for="(todo, index) in todos" :todo="todo" :key="index" 
+    @remove-todo="deleteTodo" 
+    :index="index" 
+    @show-toast="showToast" />
+    <MessageAlert :message="toastMessage" ref="toast" />
   </div>
 </template>
 
@@ -13,6 +17,7 @@ import Navbar from './components/Navbar.vue'
 import TodoList from './components/TodoList.vue'
 import TodoCounter from './components/TodoCounter.vue'
 import TodoInput from './components/TodoInput.vue'
+import MessageAlert from './components/MessageAlert.vue'
 
 export default {
   name: 'App',
@@ -21,25 +26,38 @@ export default {
     TodoCounter,
     TodoList,
     TodoInput,
+    MessageAlert
   },
   data() {
     return {
       todos: [],
+      toastMessage:"",
     }
   },
   methods: {
     handleInputValue(inputValue) {
+
+      if(inputValue === ""){
+        return
+      }
+
       this.todos.push({
         taskName: inputValue,
         isDone: false,
         isEditing: false
       })
+      this.showToast("Todo Adedd")
       console.log(this.todos)
     },
 
     deleteTodo(id) {
       console.log(id)
       this.todos = this.todos.filter((todo, i) => i !== id);
+    },
+    
+    showToast(message) {
+      this.toastMessage = message;
+      this.$refs.toast.showToast();
     }
   }
 }
@@ -54,9 +72,7 @@ export default {
 }
 
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-family: sans-serif;
   text-align: center;
   color: #2c3e50;
   padding: 60px 0;
