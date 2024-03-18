@@ -1,7 +1,7 @@
 <template>
     <div class="add_todo_container">
-        <input ref="myInput" class="add_todo_input" type="text" name="" id="" placeholder="write your next task" />
-        <span class="btn" v-on:click="handleSubmit"><i class="fa-solid fa-plus"></i></span>
+        <input ref="myInput" v-on:keyup.enter="handleSubmit"  class="add_todo_input" type="text" name="" id="" placeholder="write your next task" />
+        <span class="btn"  @click="handleSubmit"><i class="fa-solid fa-plus"></i></span>
     </div>
 </template>
 
@@ -17,6 +17,7 @@ export default {
         handleSubmit() {
             this.inputValue = this.$refs.myInput.value;
             this.$emit('input-value', this.inputValue);
+            this.$refs.myInput.value=""
         },
         
     }

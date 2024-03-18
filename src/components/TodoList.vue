@@ -1,15 +1,14 @@
 <template>
     <div class="todos_list">
-        <div class="todo_title_list">
-            <div class="circle"></div>
-            <h3 class="todo_title_text">{{ todo.taskName }}</h3>
+        <div :class="todo.isDone ? 'done' : 'todo_title_list'">
+            <div @click="doneTodo(todo)" class="circle"></div>
+            <h3 v-if="!todo.isEditing" class="todo_title_text">{{ todo.taskName }}</h3>
+            <input v-else v-model="editedTodo" class="todo_input_edit">
         </div>
-        <!-- <div class="input_div">
-            <input v-model="editedTodo"  class="todo_input_edit">
-        </div> -->
+
 
         <div class="todo_logo">
-            <span  class="icons"><i class="fa-regular fa-pen-to-square"></i></span>
+            <span @click="editTodo(todo)" class="icons"><i class="fa-regular fa-pen-to-square"></i></span>
             <span @click="onDeleteTodo(index)" class="icons"><i class="fa-regular fa-trash-can"></i></span>
         </div>
     </div>
@@ -18,16 +17,31 @@
 <script>
 export default {
     name: 'TodoList',
-    props:["todo","index"],
+    props: ["todo", "index"],
     data() {
         return {
             editedTodo: ''
         }
     },
-    methods:{
-        onDeleteTodo(todoID){
+    methods: {
+        onDeleteTodo(todoID) {
             console.log(todoID)
             this.$emit('remove-todo', todoID);
+        },
+
+        doneTodo(todo) {
+            todo.isDone = !todo.isDone
+        },
+
+        editTodo(todo) {
+            todo.isEditing = !todo.isEditing
+
+            if (todo.isEditing) {
+                this.editedTodo = todo.taskName;
+            } else {
+                todo.taskName = this.editedTodo;
+            }
+
         }
     }
 
@@ -94,7 +108,9 @@ export default {
     color: #fff;
     font-size: 2rem;
     outline: none;
+    border: 0;
     border-bottom: 1px solid #CEBEA4;
+
 }
 
 .done .circle {

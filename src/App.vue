@@ -3,6 +3,7 @@
     <Navbar />
     <TodoCounter :todos-list="todos" />
     <TodoInput @input-value="handleInputValue" />
+    <p v-if="todos.length === 0" class="todos_list_alert_text">Add some todos!</p>
     <TodoList v-for="(todo, index) in todos" :todo="todo" :key="index" @remove-todo="deleteTodo" :index="index" />
   </div>
 </template>
@@ -61,6 +62,11 @@ export default {
   padding: 60px 0;
   background-color: #0d0d0d;
   min-height: 100vh;
+}
+
+.todos_list_alert_text{
+  font-size: 2rem;
+  color: #CEBEA4;
 }
 
 

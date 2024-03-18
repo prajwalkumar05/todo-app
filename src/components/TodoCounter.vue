@@ -5,7 +5,7 @@
             <p class="todo_secondary_title">Keep it up</p>
         </div>
         <div class="total_complete">
-            <h1 class="total_done_text">{{ todosList.length }}</h1>
+            <h1 class="total_done_text">{{doneTodoCount}}/{{ todosCount }}</h1>
         </div>
     </div>
 </template>
@@ -19,6 +19,14 @@ export default {
            
         }
     },
+    computed:{
+        todosCount(){
+            return this.todosList.length
+        },
+        doneTodoCount(){
+            return this.todosList.filter(todo => todo.isDone).length;
+        }
+    }
 }
 </script>
 
