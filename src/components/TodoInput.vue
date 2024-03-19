@@ -1,26 +1,39 @@
 <template>
     <div class="add_todo_container">
-        <input ref="myInput" v-on:keyup.enter="handleSubmit"  class="add_todo_input" type="text" name="" id="" placeholder="write your next task" />
-        <span class="btn"  @click="handleSubmit"><i class="fa-solid fa-plus"></i></span>
+        <input v-model="inputValue" v-on:keyup.enter="handleSubmit" class="add_todo_input" type="text"
+            placeholder="write your next task" />
+        <select id="priority" v-model="selectedPriority">
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+        </select>
+        <span class="btn" @click="handleSubmit"><i class="fa-solid fa-plus"></i></span>
     </div>
 </template>
 
 <script>
 export default {
-    name: 'AddTodo',
+    name: 'TodoInput',
+    props: ["initialValue"],
     data() {
         return {
-            inputValue:""
+            inputValue: "",
+            selectedPriority: "medium"
         }
     },
+
+    watch: {
+        initialValue(newVal) {
+            this.inputValue = newVal;
+        }
+    },
+
     methods: {
         handleSubmit() {
-            this.inputValue = this.$refs.myInput.value;
-            this.$emit('input-value', this.inputValue);
-            this.$refs.myInput.value=""
+            this.$emit('input-value', this.inputValue, this.selectedPriority);
+            this.inputValue = ""
         },
-        
-    }
+    },
 }
 </script>
 
@@ -44,6 +57,24 @@ export default {
     border: none;
     color: #CEBEA4;
     padding-left: 2.5rem;
+    font-size: 1.6rem;
+}
+
+#priority {
+    height: 100%;
+    width: 40%;
+    background-color: #1E1E1E;
+    border-radius: 15px;
+    outline: none;
+    border: none;
+    color: #CEBEA4;
+    padding-left: 2.5rem;
+    font-size: 1.6rem;
+    margin-left: 0.5rem;
+}
+
+option {
+    padding: 1rem;
     font-size: 1.6rem;
 }
 

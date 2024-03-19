@@ -1,15 +1,16 @@
 <template>
     <div class="todos_list">
         <div :class="todo.isDone ? 'done' : 'todo_title_list'">
-            <div @click="doneTodo(todo)" class="circle"></div>
+            <div class="circle" :class="getPriorityClass(todo)" @click="doneTodo(todo)" ></div>
             <h3 v-if="!todo.isEditing" class="todo_title_text">{{ todo.taskName }}</h3>
             <input v-else v-model="editedTodo" v-on:keyup.enter="editTodo(todo)" class="todo_input_edit">
         </div>
 
 
         <div class="todo_logo">
+            <span @click="moveToHigh(index)" class="icons"><i class="fa-solid fa-retweet" :class="isClicked ? 'isclicked' : 'notclicked'"></i></span>
             <span @click="editTodo(todo)" class="icons"><i class="fa-regular fa-pen-to-square"></i></span>
-            <span @click="onDeleteTodo(index)" class="icons"><i class="fa-regular fa-trash-can"></i></span>
+            <span @click="onDeleteTodo(todo.id)" class="icons"><i class="fa-regular fa-trash-can"></i></span>
         </div>
     </div>
 </template>
@@ -20,7 +21,8 @@ export default {
     props: ["todo", "index"],
     data() {
         return {
-            editedTodo: ''
+            editedTodo: '',
+            isClicked:false,
         }
     },
     methods: {
@@ -32,22 +34,31 @@ export default {
 
         doneTodo(todo) {
             todo.isDone = !todo.isDone
-            if(todo.isDone){
+            if (todo.isDone) {
                 this.$emit('show-toast', 'Task Completed');
             }
         },
 
         editTodo(todo) {
-            todo.isEditing = !todo.isEditing
-
-            if (todo.isEditing) {
-                this.editedTodo = todo.taskName;
-            } else {
-                todo.taskName = this.editedTodo;
-            }
+            this.$emit('edit-todo', todo.taskName, todo.id); // Emit event with the task name
+        },
+        getPriorityClass(todo) {
+            // Return CSS class based on todo priority
+            return {
+                'high-priority': todo.selectedPriority === 'high',
+                'medium-priority': todo.selectedPriority === 'medium',
+                'low-priority': todo.selectedPriority === 'low'
+            };
+        },
+        moveToHigh(index){
+            this.isClicked = !this.isClicked
+            console.log(this.isClicked)
+            this.$emit('swapthe-value',index);
         }
-    }
 
+
+
+    }
 }
 </script>
 
@@ -93,6 +104,21 @@ export default {
     color: #CEBEA4;
 }
 
+.fa-retweet{
+    font-size: 2.2rem;
+    color: #CEBEA4;
+}
+
+.notclicked{
+    font-size: 2.2rem;
+    color: #CEBEA4;
+}
+
+.isclicked{
+    font-size: 2.2rem;
+    color: red;
+}
+
 .done {
     display: flex;
     align-items: center;
@@ -123,6 +149,18 @@ export default {
 
 .done .todo_title_text {
     text-decoration: line-through;
+}
+
+.high-priority{
+    border: 2px solid red;
+}
+
+.medium-priority{
+    border: 2px solid green;
+}
+
+.low-priority{
+    border: 2px solid yellow;
 }
 
 

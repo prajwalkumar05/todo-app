@@ -2,13 +2,17 @@
   <div id="app">
     <Navbar />
     <TodoCounter :todos-list="todos" />
-    <TodoInput @input-value="handleInputValue"  />
+    <PriorityIndicator />
+    <TodoInput :initial-value="todoToEdit" @input-value="handleInputValue" />
+
     <p v-if="todos.length === 0" class="todos_list_alert_text">Add some todos!</p>
-    <TodoList v-for="(todo, index) in todos" :todo="todo" :key="index" 
-    @remove-todo="deleteTodo" 
-    :index="index" 
-    @show-toast="showToast" />
+
+    <TodoList v-for="(todo, index) in sortedTasks" :todo="todo" :key="index" @remove-todo="deleteTodo" :index="index"
+      @edit-todo="editTodo" @show-toast="showToast" @swapthe-value="swapThevalue" />
+
+
     <MessageAlert :message="toastMessage" ref="toast" />
+
   </div>
 </template>
 
@@ -18,6 +22,7 @@ import TodoList from './components/TodoList.vue'
 import TodoCounter from './components/TodoCounter.vue'
 import TodoInput from './components/TodoInput.vue'
 import MessageAlert from './components/MessageAlert.vue'
+import PriorityIndicator from './components/PriorityIndicator.vue'
 
 export default {
   name: 'App',
@@ -26,39 +31,98 @@ export default {
     TodoCounter,
     TodoList,
     TodoInput,
-    MessageAlert
+    MessageAlert,
+    PriorityIndicator
   },
   data() {
     return {
       todos: [],
-      toastMessage:"",
+      toastMessage: "",
+      counter: 1,
+      todoToEdit: "",
+      editingTask: null,
+      swapValue1: null,
+      swapValue2: null,
     }
   },
-  methods: {
-    handleInputValue(inputValue) {
+  computed: {
+    sortedTasks() {
+      const priorityOrder = { high: 0, medium: 1, low: 2 };
+      const sorted = this.todos.slice().sort((a, b) => priorityOrder[a.selectedPriority] - priorityOrder[b.selectedPriority]);
+      console.log("sorted");
+      console.log(sorted);
+      return sorted;
+    }
+  },
 
-      if(inputValue === ""){
+  methods: {
+    handleInputValue(inputValue, selectedPriority) {
+      console.log(inputValue, selectedPriority)
+
+      if (inputValue === "") {
         return
       }
 
-      this.todos.push({
-        taskName: inputValue,
-        isDone: false,
-        isEditing: false
-      })
-      this.showToast("Todo Adedd")
-      console.log(this.todos)
+      if (this.editingTask != null) {
+        const todoToUpdate = this.todos.find(todo => todo.id === this.editingTask);
+        if (todoToUpdate) {
+          todoToUpdate.taskName = inputValue;
+        }
+        this.editingTask = null;
+      }
+      else {
+        this.todos.push({
+          id: this.counter++, taskName: inputValue, isDone: false, isEditing: false, selectedPriority: selectedPriority
+        })
+        this.showToast("Todo Adedd")
+        console.log(this.todos)
+      }
     },
 
     deleteTodo(id) {
       console.log(id)
-      this.todos = this.todos.filter((todo, i) => i !== id);
+      this.todos = this.todos.filter((todo) => todo.id !== id);
+      this.editingTask = null;
     },
-    
+
     showToast(message) {
       this.toastMessage = message;
       this.$refs.toast.showToast();
-    }
+    },
+
+    editTodo(taskname, id) {
+      console.log(taskname, id)
+      this.todoToEdit = taskname;
+      this.editingTask = id
+    },
+
+    swapThevalue(index) {
+      if (this.swapValue1 === null) {
+        this.swapValue1 = index;
+        console.log(this.swapValue1);
+      } else if (this.swapValue2 === null) {
+        this.swapValue2 = index;
+        console.log(this.swapValue2);
+      }
+      this.compare()
+    },
+    compare(){
+        if (this.swapValue1 !== null && this.swapValue2 !== null) {
+          console.log("i am running");
+          const temp = this.todos[this.swapValue1].taskName;
+          this.todos[this.swapValue1].taskName = this.todos[this.swapValue2].taskName;
+          this.todos[this.swapValue2].taskName = temp;
+         
+          
+          this.swapValue1 = null;
+          this.swapValue2 = null;
+        }
+      }
+
+
+
+
+
   }
 }
 </script>
@@ -80,7 +144,7 @@ export default {
   min-height: 100vh;
 }
 
-.todos_list_alert_text{
+.todos_list_alert_text {
   font-size: 2rem;
   color: #CEBEA4;
 }
