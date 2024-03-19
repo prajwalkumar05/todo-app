@@ -8,7 +8,7 @@
 
 
         <div class="todo_logo">
-            <span @click="moveToHigh(index)" class="icons"><i class="fa-solid fa-retweet" :class="isClicked ? 'isclicked' : 'notclicked'"></i></span>
+            <span @click="moveToHigh(todo,index)" class="icons"><i class="fa-solid fa-retweet" :class="todo.isSwap ? 'isclicked' : 'notclicked'"></i></span>
             <span @click="editTodo(todo)" class="icons"><i class="fa-regular fa-pen-to-square"></i></span>
             <span @click="onDeleteTodo(todo.id)" class="icons"><i class="fa-regular fa-trash-can"></i></span>
         </div>
@@ -22,7 +22,6 @@ export default {
     data() {
         return {
             editedTodo: '',
-            isClicked:false,
         }
     },
     methods: {
@@ -50,9 +49,8 @@ export default {
                 'low-priority': todo.selectedPriority === 'low'
             };
         },
-        moveToHigh(index){
-            this.isClicked = !this.isClicked
-            console.log(this.isClicked)
+        moveToHigh(todo,index){
+            todo.isSwap = !todo.isSwap
             this.$emit('swapthe-value',index);
         }
 

@@ -72,7 +72,7 @@ export default {
       }
       else {
         this.todos.push({
-          id: this.counter++, taskName: inputValue, isDone: false, isEditing: false, selectedPriority: selectedPriority
+          id: this.counter++, taskName: inputValue, isDone: false, isEditing: false, selectedPriority: selectedPriority, isSwap: false
         })
         this.showToast("Todo Adedd")
         console.log(this.todos)
@@ -99,6 +99,7 @@ export default {
     swapThevalue(index) {
       if (this.swapValue1 === null) {
         this.swapValue1 = index;
+
         console.log(this.swapValue1);
       } else if (this.swapValue2 === null) {
         this.swapValue2 = index;
@@ -106,18 +107,30 @@ export default {
       }
       this.compare()
     },
-    compare(){
-        if (this.swapValue1 !== null && this.swapValue2 !== null) {
-          console.log("i am running");
-          const temp = this.todos[this.swapValue1].taskName;
-          this.todos[this.swapValue1].taskName = this.todos[this.swapValue2].taskName;
-          this.todos[this.swapValue2].taskName = temp;
-         
-          
-          this.swapValue1 = null;
-          this.swapValue2 = null;
-        }
+    compare() {
+      if (this.swapValue1 !== null && this.swapValue2 !== null) {
+        const temp = this.todos[this.swapValue1].taskName;
+
+        
+        const updatedTodos = [...this.todos];
+        updatedTodos[this.swapValue1] = {
+          ...updatedTodos[this.swapValue1],
+          taskName: this.todos[this.swapValue2].taskName,
+          isSwap: false
+        };
+        updatedTodos[this.swapValue2] = {
+          ...updatedTodos[this.swapValue2],
+          taskName: temp,
+          isSwap: false
+        };
+
+      
+        this.todos = updatedTodos;
+
+        this.swapValue1 = null;
+        this.swapValue2 = null;
       }
+    }
 
 
 
