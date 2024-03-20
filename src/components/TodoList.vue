@@ -19,6 +19,7 @@
 export default {
     name: 'TodoList',
     props: ["todo", "index"],
+    emit:["show-toast","edit-todo","swapthe-value,remove-todo"],
     data() {
         return {
             editedTodo: '',
@@ -39,8 +40,9 @@ export default {
         },
 
         editTodo(todo) {
-            this.$emit('edit-todo', todo.taskName, todo.id); // Emit event with the task name
+            this.$emit('edit-todo', todo.taskName, todo.id); // Emit event with the task name and id
         },
+
         getPriorityClass(todo) {
             // Return CSS class based on todo priority
             return {
@@ -49,12 +51,11 @@ export default {
                 'low-priority': todo.selectedPriority === 'low'
             };
         },
+
         moveToHigh(todo,index){
             todo.isSwap = !todo.isSwap
             this.$emit('swapthe-value',index);
         }
-
-
 
     }
 }

@@ -15,16 +15,20 @@
 export default {
     name: 'TodoInput',
     props: ["initialValue"],
+    emit: ["input-value"],
     data() {
         return {
             inputValue: "",
             selectedPriority: "medium"
         }
     },
+    
 
     watch: {
-        initialValue(newVal) {
-            this.inputValue = newVal;
+        initialValue: {
+            handler(newVal) {
+                this.inputValue = newVal;
+            },
         }
     },
 

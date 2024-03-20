@@ -7,8 +7,12 @@
 
     <p v-if="todos.length === 0" class="todos_list_alert_text">Add some todos!</p>
 
-    <TodoList v-for="(todo, index) in sortedTasks" :todo="todo" :key="index" @remove-todo="deleteTodo" :index="index"
-      @edit-todo="editTodo" @show-toast="showToast" @swapthe-value="swapThevalue" />
+    <draggable>
+      <TodoList v-for="(todo, index) in sortedTasks" :todo="todo" :key="index" @remove-todo="deleteTodo" :index="index"
+        @edit-todo="editTodo" @show-toast="showToast" @swapthe-value="swapThevalue" />
+    </draggable>
+
+
 
 
     <MessageAlert :message="toastMessage" ref="toast" />
@@ -23,6 +27,7 @@ import TodoCounter from './components/TodoCounter.vue'
 import TodoInput from './components/TodoInput.vue'
 import MessageAlert from './components/MessageAlert.vue'
 import PriorityIndicator from './components/PriorityIndicator.vue'
+import draggable from "vuedraggable";
 
 export default {
   name: 'App',
@@ -32,7 +37,8 @@ export default {
     TodoList,
     TodoInput,
     MessageAlert,
-    PriorityIndicator
+    PriorityIndicator,
+    draggable
   },
   data() {
     return {
@@ -48,39 +54,42 @@ export default {
   computed: {
     sortedTasks() {
       const priorityOrder = { high: 0, medium: 1, low: 2 };
-      const sorted = this.todos.slice().sort((a, b) => priorityOrder[a.selectedPriority] - priorityOrder[b.selectedPriority]);
-      console.log("sorted");
-      console.log(sorted);
-      return sorted;
+      return this.todos.slice().sort((a, b) => priorityOrder[a.selectedPriority] - priorityOrder[b.selectedPriority]);
     }
   },
 
   methods: {
     handleInputValue(inputValue, selectedPriority) {
-      console.log(inputValue, selectedPriority)
-
       if (inputValue === "") {
-        return
+        return;
       }
 
-      if (this.editingTask != null) {
-        const todoToUpdate = this.todos.find(todo => todo.id === this.editingTask);
-        if (todoToUpdate) {
-          todoToUpdate.taskName = inputValue;
-        }
+      if (this.editingTask !== null) {
+        const updatedTodos = this.todos.map(todo => {
+          if (todo.id === this.editingTask) {
+            return { ...todo, taskName: inputValue };
+          }
+          return todo;
+        });
+
+        this.todos = updatedTodos;
         this.editingTask = null;
-      }
-      else {
+      } else {
         this.todos.push({
-          id: this.counter++, taskName: inputValue, isDone: false, isEditing: false, selectedPriority: selectedPriority, isSwap: false
-        })
-        this.showToast("Todo Adedd")
-        console.log(this.todos)
+          id: this.counter++,
+          taskName: inputValue,
+          isDone: false,
+          isEditing: false,
+          selectedPriority: selectedPriority,
+          isSwap: false,
+        });
+        this.showToast("Todo Added");
       }
+
+
     },
 
     deleteTodo(id) {
-      console.log(id)
       this.todos = this.todos.filter((todo) => todo.id !== id);
       this.editingTask = null;
     },
@@ -90,55 +99,45 @@ export default {
       this.$refs.toast.showToast();
     },
 
-    editTodo(taskname, id) {
-      console.log(taskname, id)
-      this.todoToEdit = taskname;
-      this.editingTask = id
+    editTodo(oldValue, id) {
+      this.todoToEdit = oldValue;
+      this.editingTask = id;
     },
 
     swapThevalue(index) {
       if (this.swapValue1 === null) {
         this.swapValue1 = index;
-
-        console.log(this.swapValue1);
       } else if (this.swapValue2 === null) {
         this.swapValue2 = index;
-        console.log(this.swapValue2);
+        this.compare();
       }
-      this.compare()
     },
     compare() {
       if (this.swapValue1 !== null && this.swapValue2 !== null) {
-        const temp = this.todos[this.swapValue1].taskName;
 
-        
-        const updatedTodos = [...this.todos];
-        updatedTodos[this.swapValue1] = {
-          ...updatedTodos[this.swapValue1],
-          taskName: this.todos[this.swapValue2].taskName,
-          isSwap: false
-        };
-        updatedTodos[this.swapValue2] = {
-          ...updatedTodos[this.swapValue2],
-          taskName: temp,
-          isSwap: false
-        };
+        const todosCopy = [...this.sortedTasks];
 
-      
-        this.todos = updatedTodos;
+        // Swap the task names
+        const temp = todosCopy[this.swapValue1].taskName;
+        todosCopy[this.swapValue1].taskName = todosCopy[this.swapValue2].taskName;
+        todosCopy[this.swapValue2].taskName = temp;
 
+        todosCopy[this.swapValue1].isSwap = false
+        todosCopy[this.swapValue2].isSwap = false,
+
+          this.todos = todosCopy;
+
+        // Reset 
         this.swapValue1 = null;
         this.swapValue2 = null;
       }
+
     }
-
-
-
-
-
   }
 }
 </script>
+
+
 
 <style>
 * {
