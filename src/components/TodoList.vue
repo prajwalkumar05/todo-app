@@ -1,28 +1,43 @@
 <template>
-    <div class="todos_list">
-        <div :class="todo.isDone ? 'done' : 'todo_title_list'">
-            <div class="circle" :class="getPriorityClass(todo)" @click="doneTodo(todo)" ></div>
-            <h3 v-if="!todo.isEditing" class="todo_title_text">{{ todo.taskName }}</h3>
-            <input v-else v-model="editedTodo" v-on:keyup.enter="editTodo(todo)" class="todo_input_edit">
+    <div class="list_con">
+        <div class="todos_list">
+            <div :class="todo.isDone ? 'done' : 'todo_title_list'">
+                <div class="circle" :class="getPriorityClass(todo)" @click="doneTodo(todo)"></div>
+                <h3 v-if="!todo.isEditing" class="todo_title_text">{{ todo.taskName }}</h3>
+                <input v-else v-model="editedTodo" v-on:keyup.enter="editTodo(todo)" class="todo_input_edit">
+            </div>
+
+
+            <div class="todo_logo">
+                <span @click="moveToHigh(todo, index)" class="icons"><i class="fa-solid fa-retweet"
+                        :class="todo.isSwap ? 'isclicked' : 'notclicked'"></i></span>
+                <span @click="editTodo(todo)" class="icons"><i class="fa-regular fa-pen-to-square"></i></span>
+                <span @click="onDeleteTodo(todo.id)" class="icons"><i class="fa-regular fa-trash-can"></i></span>
+                <span v-if="todo.currentStatus === 'created'" @click="updateCurrentStatus(todo.id)" class="icons"><i
+                        class="fa-solid fa-angles-right"></i></span>
+                <span v-else @click="updateCurrentStatus(todo.id)" class="icons"><i
+                        class="fa-solid fa-angles-left"></i></span>
+                        <button @click="subtaskHandler">Click</button>
+            </div>
         </div>
-
-
-        <div class="todo_logo">
-            <span @click="moveToHigh(todo,index)" class="icons"><i class="fa-solid fa-retweet" :class="todo.isSwap ? 'isclicked' : 'notclicked'"></i></span>
-            <span @click="editTodo(todo)" class="icons"><i class="fa-regular fa-pen-to-square"></i></span>
-            <span @click="onDeleteTodo(todo.id)" class="icons"><i class="fa-regular fa-trash-can"></i></span>
+        <div v-if="isSubTask === true">
+            <p>Lava lonn</p>
+            <input  v-model="editedTodo" v-on:keyup.enter="editTodo(todo)" class="todo_input_edit">
         </div>
     </div>
+
 </template>
 
 <script>
 export default {
     name: 'TodoList',
     props: ["todo", "index"],
-    emit:["show-toast","edit-todo","swapthe-value,remove-todo"],
+    emit: ["show-toast", "edit-todo", "swapthe-value,remove-todo"],
+    inject: ['changeCurrentStatus'],
     data() {
         return {
             editedTodo: '',
+            isSubTask:false,
         }
     },
     methods: {
@@ -34,13 +49,18 @@ export default {
 
         doneTodo(todo) {
             todo.isDone = !todo.isDone
+
             if (todo.isDone) {
                 this.$emit('show-toast', 'Task Completed');
+                todo.currentStatus = "done"
+            }
+            else {
+                todo.currentStatus = "process"
             }
         },
 
         editTodo(todo) {
-            this.$emit('edit-todo', todo.taskName, todo.id); // Emit event with the task name and id
+            this.$emit('edit-todo', { taskName: todo.taskName, id: todo.id }); // Emit event with the task name and id
         },
 
         getPriorityClass(todo) {
@@ -52,9 +72,18 @@ export default {
             };
         },
 
-        moveToHigh(todo,index){
+        moveToHigh(todo, index) {
             todo.isSwap = !todo.isSwap
-            this.$emit('swapthe-value',index);
+            // this.$emit('swapthe-value', index);
+            this.$emit('swapthe-value', { index, todoStatus: todo.currentStatus });
+        },
+
+        updateCurrentStatus(id) {
+            this.changeCurrentStatus(id);
+        },
+
+        subtaskHandler(){
+            this.isSubTask= !this.isSubTask
         }
 
     }
@@ -62,6 +91,18 @@ export default {
 </script>
 
 <style>
+.list_con {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #fff;
+    width: 90%;
+    margin: 1rem auto;
+    border-radius: 10px;
+
+}
+
 .todos_list {
     display: flex;
     justify-content: space-between;
@@ -70,8 +111,12 @@ export default {
     padding: 1.5rem 2rem;
     border-radius: 10px;
     margin-bottom: 2rem;
-    width: 30%;
-    margin: 1rem auto;
+    width: 100%;
+    margin: 0;
+}
+
+.icons {
+    cursor: pointer;
 }
 
 .todo_title_list {
@@ -103,17 +148,27 @@ export default {
     color: #CEBEA4;
 }
 
-.fa-retweet{
+.fa-retweet {
     font-size: 2.2rem;
     color: #CEBEA4;
 }
 
-.notclicked{
+.fa-solid {
     font-size: 2.2rem;
     color: #CEBEA4;
 }
 
-.isclicked{
+.fa-angle-right {
+    font-size: 2.2rem;
+    color: #CEBEA4;
+}
+
+.notclicked {
+    font-size: 2.2rem;
+    color: #CEBEA4;
+}
+
+.isclicked {
     font-size: 2.2rem;
     color: red;
 }
@@ -150,15 +205,15 @@ export default {
     text-decoration: line-through;
 }
 
-.high-priority{
+.high-priority {
     border: 2px solid red;
 }
 
-.medium-priority{
+.medium-priority {
     border: 2px solid green;
 }
 
-.low-priority{
+.low-priority {
     border: 2px solid yellow;
 }
 
