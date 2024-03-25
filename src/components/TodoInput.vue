@@ -41,7 +41,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 .add_todo_container {
     height: 5rem;
     display: flex;

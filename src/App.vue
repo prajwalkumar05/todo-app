@@ -7,24 +7,20 @@
 
     <p v-if="todos.length === 0" class="todos_list_alert_text">Add some todos!</p>
 
-    <!-- <draggable>
-      <TodoList v-for="(todo, index) in sortedTasks" :todo="todo" :key="index" @remove-todo="deleteTodo" :index="index"
-        @edit-todo="editTodo" @show-toast="showToast" @swapthe-value="swapThevalue" />
-    </draggable> -->
-
-
     <MessageAlert :message="toastMessage" ref="toast" />
 
     <div class="process">
-      <TodoProcess title="current" :todos="sortedAndFilteredTasks" key="index" @remove-todo="deleteTodo"
-        @edit-todo="editTodo" @show-toast="showToast" @swapthe-value="swapThevalue" />
+      <TodoProcess title="current" :todos="createdStatusTodos" key="index" @remove-todo="deleteTodo"
+        @edit-todo="editTodo" @show-toast="showToast" @swapthe-value="swapThevalue" @add-subtask="addSubtask"
+        @delete-subtask="deleteSubtask" />
 
       <TodoProcess title="process" :todos="processStatus" @remove-todo="deleteTodo" @edit-todo="editTodo"
-        @show-toast="showToast" @swapthe-value="swapThevalue" />
+        @show-toast="showToast" @swapthe-value="swapThevalue" @add-subtask="addSubtask"
+        @delete-subtask="deleteSubtask" />
 
       <TodoProcess title="complete" :todos="completeStatus" @remove-todo="deleteTodo" @edit-todo="editTodo"
-        @show-toast="showToast" @swapthe-value="swapThevalue" />
-
+        @show-toast="showToast" @swapthe-value="swapThevalue" @add-subtask="addSubtask"
+        @delete-subtask="deleteSubtask" />
     </div>
 
   </div>
@@ -38,7 +34,6 @@ import TodoInput from './components/TodoInput.vue'
 import MessageAlert from './components/MessageAlert.vue'
 import PriorityIndicator from './components/PriorityIndicator.vue'
 import TodoProcess from './components/TodoProcess.vue'
-// import draggable from "vuedraggable";
 
 export default {
   name: 'App',
@@ -48,7 +43,6 @@ export default {
     TodoInput,
     MessageAlert,
     PriorityIndicator,
-    // draggable,
     TodoProcess
   },
   data() {
@@ -60,10 +54,16 @@ export default {
       editingTask: null,
       swapValue1: null,
       swapValue2: null,
+      subtaskupdateID: null
+    }
+  },
+  provide() {
+    return {
+      changeCurrentStatus: this.changeCurrentStatus
     }
   },
   computed: {
-    sortedAndFilteredTasks() {
+    createdStatusTodos() {
       return this.sortTasksByPriority(
         this.todos.filter(todo => todo.currentStatus === 'created')
       );
@@ -80,16 +80,6 @@ export default {
         this.todos.filter(todo => todo.currentStatus === 'done')
       );
     }
-
-
-  },
-
-  provide() {
-
-    return {
-      changeCurrentStatus: this.changeCurrentStatus
-    }
-
   },
 
   methods: {
@@ -99,11 +89,13 @@ export default {
         return priorityOrder[a.selectedPriority] - priorityOrder[b.selectedPriority];
       });
     },
+
     handleInputValue(inputValue, selectedPriority) {
       if (inputValue === "") {
         return;
       }
 
+      // if editing task is there it update that edit value else dirctly push new value
       if (this.editingTask !== null) {
         const updatedTodos = this.todos.map(todo => {
           if (todo.id === this.editingTask) {
@@ -122,13 +114,11 @@ export default {
           isEditing: false,
           selectedPriority: selectedPriority,
           isSwap: false,
-          currentStatus: "created"
+          currentStatus: "created",
+          subTasks: []
         });
-        console.log(this.counter)
         this.showToast("Todo Added");
       }
-
-
     },
 
     deleteTodo(id) {
@@ -141,56 +131,66 @@ export default {
       this.$refs.toast.showToast();
     },
 
-    editTodo(oldValue, id) {
-      this.todoToEdit = oldValue;
-      this.editingTask = id;
+    editTodo(obj) {
+
+      //add oldTodovalue to assign to todoToEdit for editting that value
+      this.todoToEdit = obj.taskName;
+
+      //using gobal variable for work easy assgin edit to id
+      this.editingTask = obj.id;
     },
 
     swapThevalue(index, status) {
-    console.log("swap", index);
-    if (this.swapValue1 === null) {
-      this.swapValue1 = { index, status };
-    } else if (this.swapValue2 === null) {
-      this.swapValue2 = { index, status };
-      this.compare();
-    }
-  },
-  compare() {
-    if (this.swapValue1 !== null && this.swapValue2 !== null) {
-      const todo1 = this.getTodoFromStatus(this.swapValue1.index, this.swapValue1.status);
-      const todo2 = this.getTodoFromStatus(this.swapValue2.index, this.swapValue2.status);
+      if (this.swapValue1 === null) {
+        this.swapValue1 = { index, status };
+      } else if (this.swapValue2 === null) {
+        this.swapValue2 = { index, status };
+        this.compare();
+      }
+    },
+    compare() {
+      if (this.swapValue1 !== null && this.swapValue2 !== null) {
 
-      // Swap the task names
-      const temp = todo1.taskName;
-      todo1.taskName = todo2.taskName;
-      todo2.taskName = temp;
+        //getting swap todo1value using function
+        const todo1 = this.getTodoFromStatus(this.swapValue1.index, this.swapValue1.status);
 
-      todo1.isSwap = false;
-      todo2.isSwap = false;
+        //getting swap todo2value using function
+        const todo2 = this.getTodoFromStatus(this.swapValue2.index, this.swapValue2.status);
 
-      // Reset 
-      this.swapValue1 = null;
-      this.swapValue2 = null;
-    }
-  },
-  getTodoFromStatus(index, status) {
-    switch (status) {
-      case 'created':
-        return this.sortedAndFilteredTasks[index];
-      case 'process':
-        return this.processStatus[index];
-      case 'done':
-        return this.completeStatus[index];
-      default:
-        return null;
-    }
-  },
+        // Swap the task names
+        const temp = todo1.taskName;
+        todo1.taskName = todo2.taskName;
+        todo2.taskName = temp;
+
+        todo1.isSwap = false;
+        todo2.isSwap = false;
+
+        // Reset 
+        this.swapValue1 = null;
+        this.swapValue2 = null;
+      }
+    },
+
+    getTodoFromStatus(index, status) {
+      switch (status) {
+        case 'created':
+          //it returns index of createdStatus todos
+          return this.createdStatusTodos[index];
+        case 'process':
+          return this.processStatus[index];
+        case 'done':
+          return this.completeStatus[index];
+        default:
+          return null;
+      }
+    },
 
     changeCurrentStatus(todoId) {
+      console.log(todoId)
       const todoIndex = this.todos.findIndex(todo => todo.id === todoId);
 
       if (todoIndex !== -1) {
-        const updatedTodo = { ...this.todos[todoIndex] }; 
+        const updatedTodo = { ...this.todos[todoIndex] };
 
         if (updatedTodo.currentStatus === 'created') {
           updatedTodo.currentStatus = 'process';
@@ -198,7 +198,7 @@ export default {
           updatedTodo.currentStatus = 'created';
         } else if (updatedTodo.currentStatus === 'done') {
           updatedTodo.currentStatus = 'process';
-          updatedTodo.isDone = !updatedTodo.isDone; 
+          updatedTodo.isDone = !updatedTodo.isDone;
         }
 
         // Update the todo item in the todos array
@@ -206,9 +206,66 @@ export default {
       } else {
         console.error('Todo item not found.');
       }
-    }
+    },
+
+    addSubtask(editid, subtask) {
+      // Set the ID of the subtask being updated
+      console.log("editid id")
+      console.log(editid)
+      if(editid === -1){
+        this.subtaskupdateID = null;
+      }else{
+        this.subtaskupdateID = editid;
+      }
+      
+      
+
+      // Find the current todo being edited or added
+      const todo = this.todos.find(todo => todo.id === subtask.todoId);
+
+      if (todo) {
+        // Check if a subtask is being updated
+        if (this.subtaskupdateID !== null) {
+          const updatedSubtasks = todo.subTasks.map(sub => {
+            if (sub.id === this.subtaskupdateID) {
+              return { ...sub, taskName: subtask.taskName };
+            }
+            return sub;
+          });
+
+          // Update the subtasks array
+          todo.subTasks = updatedSubtasks;
+          this.subtaskupdateID = null;
+        } else {
+          // Add a new subtask if not updating an existing one
+          todo.subTasks.push({
+            id: new Date().getTime(),
+            taskName: subtask.taskName,
+            isDone: false,
+            selectedPriority: subtask.selectedPriority,
+          });
+          this.showToast("Subtask Added");
+        }
+      } else {
+        console.error('Todo item not found.');
+      }
+    },
+
+    deleteSubtask({ todoId, subtaskIndex }) {
+      console.log(todoId, subtaskIndex)
+      // Find the todo by its ID
+      const todoIndex = this.todos.findIndex(todo => todo.id === todoId);
 
 
+      // If the todo is found
+      if (todoIndex !== -1) {
+        // Remove the subtask by its index
+        this.todos[todoIndex].subTasks.splice(subtaskIndex, 1);
+        this.showToast("Subtask Deleted");
+      } else {
+        console.error('Todo item not found.');
+      }
+    },
   }
 }
 </script>

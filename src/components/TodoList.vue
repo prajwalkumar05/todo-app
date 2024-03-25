@@ -7,7 +7,6 @@
                 <input v-else v-model="editedTodo" v-on:keyup.enter="editTodo(todo)" class="todo_input_edit">
             </div>
 
-
             <div class="todo_logo">
                 <span @click="moveToHigh(todo, index)" class="icons"><i class="fa-solid fa-retweet"
                         :class="todo.isSwap ? 'isclicked' : 'notclicked'"></i></span>
@@ -17,32 +16,35 @@
                         class="fa-solid fa-angles-right"></i></span>
                 <span v-else @click="updateCurrentStatus(todo.id)" class="icons"><i
                         class="fa-solid fa-angles-left"></i></span>
-                        <button @click="subtaskHandler">Click</button>
+                <span @click="subtaskHandler" class="icons subtask-btn">Subtask</span>
             </div>
         </div>
-        <div v-if="isSubTask === true">
-            <p>Lava lonn</p>
-            <input  v-model="editedTodo" v-on:keyup.enter="editTodo(todo)" class="todo_input_edit">
+        <div v-if="isSubTask === true" class="subtask-con">
+            <SubTask :subTasks="todo.subTasks" @delete-subtask="deleteSubtask" @add-subtask="addSubtask" />
         </div>
     </div>
-
 </template>
 
 <script>
+import SubTask from './SubTask.vue'
+
 export default {
     name: 'TodoList',
     props: ["todo", "index"],
-    emit: ["show-toast", "edit-todo", "swapthe-value,remove-todo"],
+    emits: ["show-toast", "edit-todo", "swapthe-value", "remove-todo", "delete-subtask", "add-subtask"],
     inject: ['changeCurrentStatus'],
+    components: {
+        SubTask,
+    },
     data() {
         return {
             editedTodo: '',
-            isSubTask:false,
+            isSubTask: false,
+            newSubtask: '',
         }
     },
     methods: {
         onDeleteTodo(todoID) {
-            console.log(todoID)
             this.$emit('remove-todo', todoID);
             this.$emit('show-toast', 'Todo Deleted');
         },
@@ -50,11 +52,11 @@ export default {
         doneTodo(todo) {
             todo.isDone = !todo.isDone
 
+            // changing todo Process
             if (todo.isDone) {
                 this.$emit('show-toast', 'Task Completed');
                 todo.currentStatus = "done"
-            }
-            else {
+            } else {
                 todo.currentStatus = "process"
             }
         },
@@ -79,18 +81,38 @@ export default {
         },
 
         updateCurrentStatus(id) {
+            //using inject dirctly updating in parrent component
             this.changeCurrentStatus(id);
         },
 
-        subtaskHandler(){
-            this.isSubTask= !this.isSubTask
-        }
+        subtaskHandler() {
+            this.isSubTask = !this.isSubTask
+            console.log("i'm open")
+        },
 
+        addSubtask(id,subtask) {
+            this.$emit('add-subtask',id, {
+                updateId:this.editTodoId,
+                todoId: this.todo.id,
+                taskName: subtask.taskName,
+                isDone: subtask.isDone,
+                selectedPriority: subtask.selectedPriority
+            });
+        },
+
+        deleteSubtask(subtaskIndex) {
+
+            this.$emit('delete-subtask', {
+                todoId: this.todo.id,
+                subtaskIndex: subtaskIndex
+            });
+        }
     }
 }
 </script>
 
-<style>
+
+<style scoped>
 .list_con {
     display: flex;
     flex-direction: column;
@@ -141,6 +163,7 @@ export default {
 .todo_logo {
     display: flex;
     gap: 1.5rem;
+    align-items: center;
 }
 
 .todo_logo .fa-regular {
@@ -215,6 +238,20 @@ export default {
 
 .low-priority {
     border: 2px solid yellow;
+}
+
+.subtask-con {
+    width: 100%;
+}
+
+.subtask-btn {
+    height: 30px;
+    width: 60px;
+    border: 1px solid #fff;
+    border-radius: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 
