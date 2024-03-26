@@ -2,7 +2,7 @@
     <div class="subtask">
         <h3 class="title">SubTask</h3>
         <p v-if="sortTasksByPriority === 0" class="subtask-title">No Subtask</p>
-        <div class="subtask-box" v-for="(subtask, index) in sortTasksByPriority" :key="index">
+        <!-- <div class="subtask-box" v-for="(subtask, index) in sortTasksByPriority" :key="index">
             <div class="subtask-box-left" :class="subtask.isDone ? 'done' : 'todo_title_list'">
                 <div @click="doneTodo(subtask)" class="circle" :class="getPriorityClass(subtask)"></div>
 
@@ -14,22 +14,24 @@
             <span @click="deleteSubtask(index)" class="icons"><i class="fa-regular fa-trash-can"></i></span>
             </div>
             
-        </div>
+        </div> -->
         <div class="add">
-            <input v-model="newSubtask" @keyup.enter="addSubtask" placeholder="Add a subtask" class="todo_input_edit">
-            <select v-model="priority" class="priority-select">
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-            </select>
-            <span class="btn" @click="addSubtask"><i class="fa-solid fa-plus"></i></span>
+            <TodoList :todos="subTasks" @add-subtask="addSubtask" @delete-subtask="deleteSubtask" />
+            <TodoInput @inputSub-value="addSubtask" />
         </div>
     </div>
 </template>
 
 <script>
+import TodoInput from './TodoInput.vue';
+import TodoList from './TodoList.vue';
+
 export default {
     props: ['subTasks'],
+    components:{
+        TodoInput,
+        TodoList
+    },
     data() {
         return {
             newSubtask: '',
@@ -46,10 +48,12 @@ export default {
         },
     },
     methods: {
-        addSubtask() {
+        addSubtask(inputvalue,selectedPriority) {
 
-            if (this.newSubtask.trim() !== '') {
-                this.$emit('add-subtask',this.editTodoId,{taskName: this.newSubtask, isDone: false, selectedPriority: this.priority });
+            console.log(inputvalue,selectedPriority)
+
+            if (inputvalue.trim() !== '') {
+                this.$emit('add-subtask',this.editTodoId,{taskName: inputvalue, isDone: false, selectedPriority: this.priority });
                 this.newSubtask = '';
                 this.editTodoId = -1 // Clear the input field after adding
             }
@@ -191,5 +195,9 @@ option{
 .icon-grp{
     display: flex;
     gap: 10px;
+}
+
+.add{
+    width: 100%;
 }
 </style>

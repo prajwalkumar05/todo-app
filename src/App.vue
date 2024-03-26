@@ -3,7 +3,9 @@
     <Navbar />
     <TodoCounter :todos-list="todos" />
     <PriorityIndicator />
-    <TodoInput :initial-value="todoToEdit" @input-value="handleInputValue" />
+    <div class="input-con">
+      <TodoInput :initial-value="todoToEdit" @input-value="handleInputValue" />
+    </div>
 
     <p v-if="todos.length === 0" class="todos_list_alert_text">Add some todos!</p>
 
@@ -132,7 +134,6 @@ export default {
     },
 
     editTodo(obj) {
-
       //add oldTodovalue to assign to todoToEdit for editting that value
       this.todoToEdit = obj.taskName;
 
@@ -287,6 +288,7 @@ export default {
   padding: 60px 0;
   background-color: #0d0d0d;
   min-height: 100vh;
+  
 }
 
 .todos_list_alert_text {
@@ -299,6 +301,11 @@ export default {
   justify-content: center;
   gap: 15px;
   margin-top: 60px;
+}
+
+.input-con{
+  width: 30%;
+  margin: 0 auto;
 }
 
 

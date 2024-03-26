@@ -15,7 +15,7 @@
 export default {
     name: 'TodoInput',
     props: ["initialValue"],
-    emit: ["input-value"],
+    emit: ["input-value","inputSub-value"],
     data() {
         return {
             inputValue: "",
@@ -35,6 +35,7 @@ export default {
     methods: {
         handleSubmit() {
             this.$emit('input-value', this.inputValue, this.selectedPriority);
+            this.$emit('inputSub-value', this.inputValue, this.selectedPriority);
             this.inputValue = ""
         },
     },
@@ -45,7 +46,7 @@ export default {
 .add_todo_container {
     height: 5rem;
     display: flex;
-    width: 30%;
+    width: 100%;
     margin: 3rem auto;
     align-items: center;
     /* border: 1px solid red; */

@@ -10,6 +10,7 @@
             <div class="todo_logo">
                 <span @click="moveToHigh(todo, index)" class="icons"><i class="fa-solid fa-retweet"
                         :class="todo.isSwap ? 'isclicked' : 'notclicked'"></i></span>
+
                 <span @click="editTodo(todo)" class="icons"><i class="fa-regular fa-pen-to-square"></i></span>
                 <span @click="onDeleteTodo(todo.id)" class="icons"><i class="fa-regular fa-trash-can"></i></span>
                 <span v-if="todo.currentStatus === 'created'" @click="updateCurrentStatus(todo.id)" class="icons"><i
@@ -90,9 +91,9 @@ export default {
             console.log("i'm open")
         },
 
-        addSubtask(id,subtask) {
-            this.$emit('add-subtask',id, {
-                updateId:this.editTodoId,
+        addSubtask(id, subtask) {
+            this.$emit('add-subtask', id, {
+                updateId: this.editTodoId,
                 todoId: this.todo.id,
                 taskName: subtask.taskName,
                 isDone: subtask.isDone,
@@ -101,7 +102,6 @@ export default {
         },
 
         deleteSubtask(subtaskIndex) {
-
             this.$emit('delete-subtask', {
                 todoId: this.todo.id,
                 subtaskIndex: subtaskIndex

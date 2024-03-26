@@ -6,7 +6,7 @@
 
         <div class="todolist-con">
             <draggable>
-                <TodoList v-for="(todo, index) in todolist" :todo="todo" @remove-todo="deleteTodo" :key="index"
+                <TodoList v-for="(todo, index) in todos" :todo="todo" @remove-todo="deleteTodo" :key="index"
                     :index="index" @swapthe-value="swapThevalue" @edit-todo="editTodo" @add-subtask="addSubtask"
                     @delete-subtask="deleteSubtask" />
             </draggable>
