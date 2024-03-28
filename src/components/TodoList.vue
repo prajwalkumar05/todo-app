@@ -1,268 +1,306 @@
 <template>
-    <div class="list_con">
-        <div class="todos_list">
-            <div :class="todo.isDone ? 'done' : 'todo_title_list'">
-                <div class="circle" :class="getPriorityClass(todo)" @click="doneTodo(todo)"></div>
-                <h3 v-if="!todo.isEditing" class="todo_title_text">{{ todo.taskName }}</h3>
-                <input v-else v-model="editedTodo" v-on:keyup.enter="editTodo(todo)" class="todo_input_edit">
-            </div>
-
-            <div class="todo_logo">
-                <span @click="moveToHigh(todo, index)" class="icons"><i class="fa-solid fa-retweet"
-                        :class="todo.isSwap ? 'isclicked' : 'notclicked'"></i></span>
-
-                <span @click="editTodo(todo)" class="icons"><i class="fa-regular fa-pen-to-square"></i></span>
-                <span @click="onDeleteTodo(todo.id)" class="icons"><i class="fa-regular fa-trash-can"></i></span>
-                <span v-if="todo.currentStatus === 'created'" @click="updateCurrentStatus(todo.id)" class="icons"><i
-                        class="fa-solid fa-angles-right"></i></span>
-                <span v-else @click="updateCurrentStatus(todo.id)" class="icons"><i
-                        class="fa-solid fa-angles-left"></i></span>
-                <span @click="subtaskHandler" class="icons subtask-btn">Subtask</span>
-            </div>
-        </div>
-        <div v-if="isSubTask === true" class="subtask-con">
-            <SubTask :subTasks="todo.subTasks" @delete-subtask="deleteSubtask" @add-subtask="addSubtask" />
-        </div>
+  <div class="list_con">
+    <TodoItem
+      :index="index"
+      :key="todo.id"
+      :todo="todo"
+      @done-todo="doneTodo"
+      @edit-todo="editTodo"
+      @delete-todo="deleteTodo"
+      @move-to-high="swapTodo"
+      @update-current-status="updateCurrentStatus"
+      @subtask-handler="subtaskHandler"
+      :showMoveToHigh="true"
+      :showEdit="true"
+      :showDelete="true"
+      :showUpdateCurrentStatus="true"
+    />
+    <div v-if="isSubTask === true" class="subtask-con">
+      <SubTask
+        :subTasks="todo.subTasks"
+        :todo="todo"
+        @delete-subtask="deleteSubtask"
+        @add-subtask="addSubtask"
+      />
     </div>
+  </div>
 </template>
 
 <script>
-import SubTask from './SubTask.vue'
+import TodoItem from "./TodoItem.vue";
+import SubTask from "./SubTask.vue";
 
 export default {
-    name: 'TodoList',
-    props: ["todo", "index"],
-    emits: ["show-toast", "edit-todo", "swapthe-value", "remove-todo", "delete-subtask", "add-subtask"],
-    inject: ['changeCurrentStatus'],
-    components: {
-        SubTask,
+  name: "TodoList",
+  props: ["todos", "todo", "index"],
+  data() {
+    return {
+      isSubTask: false,
+      selectedTodo: null,
+    };
+  },
+  watch: {
+    "todo.subTasks": {
+      deep: true,
+      handler(newValue, oldValue) {
+        console.log(newValue, oldValue);
+        this.updateTodoCompletion(this.todo);
+      },
     },
-    data() {
-        return {
-            editedTodo: '',
-            isSubTask: false,
-            newSubtask: '',
-        }
+  },
+  methods: {
+    doneTodo(todo) {
+      console.log("done")
+      this.$emit("show-toast", "Task Completed");
+
+      todo.isDone = !todo.isDone
+      if(todo.isDone){
+        todo.subTasks.forEach((subtodo) => (subtodo.isDone = true));
+        todo.currentStatus = "done";
+
+      }
+      else{
+        todo.subTasks.forEach((subtodo) => (subtodo.isDone = false));
+        todo.currentStatus = "process";
+      }
+
+      
+
+      // Check if any subtodos are pending
+      // const hasPendingSubtodos = todo.subTasks.some(
+      //   (subtodo) => !subtodo.isDone
+      // );
+
+      // If there are pending subtodos, prevent marking the main todo as done
+      // if (hasPendingSubtodos) {
+      //   console.log(
+      //     "Cannot mark main todo as done while subtodos are pending."
+      //   );
+
+      //   this.$emit(
+      //     "show-toast",
+      //     "Cannot mark main todo as done while subtodos are pending."
+      //   );
+      //   return;
+      // }
+
+      // Update completion status of all subtodos
+      
     },
-    methods: {
-        onDeleteTodo(todoID) {
-            this.$emit('remove-todo', todoID);
-            this.$emit('show-toast', 'Todo Deleted');
-        },
+    editTodo(todo) {
+      // Emit event to edit todo
+      this.$emit("edit-todo", todo);
+    },
+    deleteTodo(todoId) {
+      console.log(todoId);
+      // Emit event to delete todo
+      this.$emit("remove-todo", todoId);
+    },
+    swapTodo(todo, index) {
+      console.log("move to high");
+      console.log(todo, index);
+      // Emit event to move todo to high
+      this.$emit("swapthe-value", this.index, todo.currentStatus);
+    },
+    updateCurrentStatus(todoId) {
+      // Emit event to update current status
+      console.log(todoId);
+      this.$emit("update-current-status", todoId);
+    },
+    subtaskHandler(todo) {
+      console.log("todo come from item");
+      console.log(todo);
+      this.isSubTask = !this.isSubTask;
+      this.selectedTodo = todo;
+    },
+    addSubtask(editId, subtask) {
+      console.log("todolist my name is" + subtask.taskName);
+      // Emit event to add subtask
+      this.$emit("add-subtask", editId, {
+        todoId: this.selectedTodo.id,
+        ...subtask,
+      });
+    },
+    deleteSubtask(subtaskIndex) {
+      // Emit event to delete subtask
+      this.$emit("delete-subtask", {
+        todoId: this.selectedTodo.id,
+        subtaskIndex,
+      });
+    },
+    updateTodoCompletion(todo) {
+      const allSubtodosCompleted = todo.subTasks.every(
+        (subtodo) => subtodo.isDone
+      );
 
-        doneTodo(todo) {
-            todo.isDone = !todo.isDone
+      console.log(allSubtodosCompleted);
+      todo.isDone = allSubtodosCompleted;
+      // Update main todo's completion status
 
-            // changing todo Process
-            if (todo.isDone) {
-                this.$emit('show-toast', 'Task Completed');
-                todo.currentStatus = "done"
-            } else {
-                todo.currentStatus = "process"
-            }
-        },
-
-        editTodo(todo) {
-            this.$emit('edit-todo', { taskName: todo.taskName, id: todo.id }); // Emit event with the task name and id
-        },
-
-        getPriorityClass(todo) {
-            // Return CSS class based on todo priority
-            return {
-                'high-priority': todo.selectedPriority === 'high',
-                'medium-priority': todo.selectedPriority === 'medium',
-                'low-priority': todo.selectedPriority === 'low'
-            };
-        },
-
-        moveToHigh(todo, index) {
-            todo.isSwap = !todo.isSwap
-            // this.$emit('swapthe-value', index);
-            this.$emit('swapthe-value', { index, todoStatus: todo.currentStatus });
-        },
-
-        updateCurrentStatus(id) {
-            //using inject dirctly updating in parrent component
-            this.changeCurrentStatus(id);
-        },
-
-        subtaskHandler() {
-            this.isSubTask = !this.isSubTask
-            console.log("i'm open")
-        },
-
-        addSubtask(id, subtask) {
-            this.$emit('add-subtask', id, {
-                updateId: this.editTodoId,
-                todoId: this.todo.id,
-                taskName: subtask.taskName,
-                isDone: subtask.isDone,
-                selectedPriority: subtask.selectedPriority
-            });
-        },
-
-        deleteSubtask(subtaskIndex) {
-            this.$emit('delete-subtask', {
-                todoId: this.todo.id,
-                subtaskIndex: subtaskIndex
-            });
+      if (todo.isDone) {
+        todo.currentStatus = "done";
+      } else {
+        if (todo.currentStatus === "created") {
+          todo.currentStatus = "created";
+        } else {
+          todo.currentStatus = "process";
         }
-    }
-}
+      }
+    },
+  },
+  components: {
+    TodoItem,
+    SubTask,
+  },
+};
 </script>
-
 
 <style scoped>
 .list_con {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    border: 1px solid #fff;
-    width: 90%;
-    margin: 1rem auto;
-    border-radius: 10px;
-
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #fff;
+  width: 90%;
+  margin: 1rem auto;
+  border-radius: 10px;
 }
 
 .todos_list {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border: 1px solid #fff;
-    padding: 1.5rem 2rem;
-    border-radius: 10px;
-    margin-bottom: 2rem;
-    width: 100%;
-    margin: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #fff;
+  padding: 1.5rem 2rem;
+  border-radius: 10px;
+  margin-bottom: 2rem;
+  width: 100%;
+  margin: 0;
 }
 
 .icons {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 .todo_title_list {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .circle {
-    height: 2.5rem;
-    width: 2.5rem;
-    border: 2px solid #FF5631;
-    border-radius: 50%;
-
+  height: 2.5rem;
+  width: 2.5rem;
+  border: 2px solid #ff5631;
+  border-radius: 50%;
 }
 
 .todo_title_text {
-    font-size: 2rem;
-    color: #CEBEA4;
+  font-size: 2rem;
+  color: #cebea4;
 }
 
 .todo_logo {
-    display: flex;
-    gap: 1.5rem;
-    align-items: center;
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
 }
 
 .todo_logo .fa-regular {
-    font-size: 2.2rem;
-    color: #CEBEA4;
+  font-size: 2.2rem;
+  color: #cebea4;
 }
 
 .fa-retweet {
-    font-size: 2.2rem;
-    color: #CEBEA4;
+  font-size: 2.2rem;
+  color: #cebea4;
 }
 
 .fa-solid {
-    font-size: 2.2rem;
-    color: #CEBEA4;
+  font-size: 2.2rem;
+  color: #cebea4;
 }
 
 .fa-angle-right {
-    font-size: 2.2rem;
-    color: #CEBEA4;
+  font-size: 2.2rem;
+  color: #cebea4;
 }
 
 .notclicked {
-    font-size: 2.2rem;
-    color: #CEBEA4;
+  font-size: 2.2rem;
+  color: #cebea4;
 }
 
 .isclicked {
-    font-size: 2.2rem;
-    color: red;
+  font-size: 2.2rem;
+  color: red;
 }
 
 .done {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .input_div {
-    height: 100%;
-    width: 100%;
+  height: 100%;
+  width: 100%;
 }
 
 .todo_input_edit {
-    width: 60%;
-    height: 40px;
-    background-color: transparent;
-    color: #fff;
-    font-size: 2rem;
-    outline: none;
-    border: 0;
-    border-bottom: 1px solid #CEBEA4;
-
+  width: 60%;
+  height: 40px;
+  background-color: transparent;
+  color: #fff;
+  font-size: 2rem;
+  outline: none;
+  border: 0;
+  border-bottom: 1px solid #cebea4;
 }
 
 .done .circle {
-    background-color: rgb(36, 223, 36);
-    border: 2px solid rgb(36, 223, 36);
+  background-color: rgb(36, 223, 36);
+  border: 2px solid rgb(36, 223, 36);
 }
 
 .done .todo_title_text {
-    text-decoration: line-through;
+  text-decoration: line-through;
 }
 
 .high-priority {
-    border: 2px solid red;
+  border: 2px solid red;
 }
 
 .medium-priority {
-    border: 2px solid green;
+  border: 2px solid green;
 }
 
 .low-priority {
-    border: 2px solid yellow;
+  border: 2px solid yellow;
 }
 
 .subtask-con {
-    width: 100%;
+  width: 100%;
 }
 
 .subtask-btn {
-    height: 30px;
-    width: 60px;
-    border: 1px solid #fff;
-    border-radius: 25px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  height: 30px;
+  width: 60px;
+  border: 1px solid #fff;
+  border-radius: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-
-
 @media only screen and (max-width: 500px) {
-    html {
-        font-size: 8px;
-    }
+  html {
+    font-size: 8px;
+  }
 
-    .todos_list {
-        width: 60%;
-    }
+  .todos_list {
+    width: 60%;
+  }
 }
 </style>

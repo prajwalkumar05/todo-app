@@ -124,6 +124,7 @@ export default {
     },
 
     deleteTodo(id) {
+      console.log("todo"+id)
       this.todos = this.todos.filter((todo) => todo.id !== id);
       this.editingTask = null;
     },
@@ -210,6 +211,8 @@ export default {
     },
 
     addSubtask(editid, subtask) {
+      console.log("subtask final report")
+      console.log("name is "+subtask.selectedPriority)
       // Set the ID of the subtask being updated
       console.log("editid id")
       console.log(editid)
@@ -223,6 +226,7 @@ export default {
 
       // Find the current todo being edited or added
       const todo = this.todos.find(todo => todo.id === subtask.todoId);
+      console.log(todo)
 
       if (todo) {
         // Check if a subtask is being updated
@@ -238,6 +242,7 @@ export default {
           todo.subTasks = updatedSubtasks;
           this.subtaskupdateID = null;
         } else {
+          console.log("todo")
           // Add a new subtask if not updating an existing one
           todo.subTasks.push({
             id: new Date().getTime(),
@@ -245,6 +250,7 @@ export default {
             isDone: false,
             selectedPriority: subtask.selectedPriority,
           });
+          
           this.showToast("Subtask Added");
         }
       } else {
